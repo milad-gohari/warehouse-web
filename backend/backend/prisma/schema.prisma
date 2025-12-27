@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  sales
+  warehouse
+  supply
+}
+
+enum TxType {
+  PURCHASE
+  PRODUCTION
+  SALE
+  TRANSFER_IN
+  TRANSFER_OUT
+  ADJUSTMENT
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  username     String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+}
+
+model Warehouse {
+  id   Int    @id @default(autoincrement())
+  code String @unique
+  name String
+}
+
+model Product {
+  id   Int    @id @default(autoincrement())
+  code String @unique
+  name String
+  type String
+  unit String
+}
+
+model Inventory {
+  id          Int   @id @default(autoincrement())
+  warehouseId Int
+  productId   Int
+  qty         Float @default(0)
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@unique([warehouseId, productId])
+}
+
+model InventoryTx {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  txType      TxType
+  warehouseId Int
+  productId   Int
+  qty         Float
+  userId      Int
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model FormulaPerLiter {
+  id          Int   @id @default(autoincrement())
+  productCode String
+  rawCode     String
+  kgPerLiter  Float
+
+  @@unique([productCode, rawCode])
+}
+
+model AlertRule {
+  id            Int   @id @default(autoincrement())
+  warehouseCode String
+  productCode   String
+  minQty        Float
+
+  @@unique([warehouseCode, productCode])
+}
