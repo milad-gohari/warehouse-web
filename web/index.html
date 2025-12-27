@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>مدیریت انبار</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      direction: rtl;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+    }
+    .box {
+      background: white;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>📦 سیستم مدیریت انبار</h2>
+
+<div class="box">
+  <h3>ورود ادمین</h3>
+  <input id="username" placeholder="نام کاربری" />
+  <button onclick="login()">ورود</button>
+  <div id="loginResult"></div>
+</div>
+
+<div class="box">
+  <button onclick="loadStock()">📊 نمایش موجودی مواد اولیه</button>
+  <pre id="stock"></pre>
+</div>
+
+<script>
+  // 🔴 این دو مقدار رو از Supabase جایگزین کن
+  const SUPABASE_URL = "https://ofhizfbypnmnxhuippet.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_pmW2vcmLNOWdOX3wJtD7BQ_KK92TI3w";
+
+  const supabase = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+  async function login() {
+    const username = document.getElementById("username").value;
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("username", username)
+      .single();
+
+    if (error) {
+      document.getElementById("loginResult").innerText = "❌ کاربر پیدا نشد";
+    } else {
+      document.getElementById("loginResult").innerText =
+        "✅ خوش آمدی " + data.role;
+    }
+  }
+
+  async function loadStock() {
+    const { data, error } = await supabase
+      .from("raw_materials")
+      .select("*");
+
+    if (error) {
+      document.getElementById("stock").innerText = "خطا در دریافت داده";
+    } else {
+      document.getElementById("stock").innerText =
+        JSON.stringify(data, null, 2);
+    }
+  }
+</script>
+
+</body>
+</html>
